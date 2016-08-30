@@ -1,0 +1,220 @@
+Wai Yan Kaung
+CSC-D234
+2/21/2016
+
+                                    		 Chapter 2 Hands On Assignment Part II
+
+
+Assignment 2-9: Using a FOR Loop
+
+Create a PL/SQL block using a FOR loop to generate a payment schedule tor a donor's pledge, 
+which is to be paid monthly in equal increments. Values available for the block are starting payment due date, 
+monthly payment amount, and number of total monthly payments for the pledge. 
+The list that's generated should display a line for each monthly payment showing payment number, 
+date due, payment amount, and donation balance (remaining amount of pledge owed).
+
+SQL Statement:
+
+DECLARE
+  lv_start_date DATE := '01-OCT-2012';
+  lv_payamt_num NUMBER(8,2) := 20;
+  lv_paymths_num NUMBER(8,2) := 24;
+  lv_bal_num NUMBER(8,2) := 0;
+  lv_duedate_date DATE;
+  lv_duedate_txt VARCHAR2(25);
+BEGIN
+  lv_bal_num := lv_payamt_num * lv_paymths_num;
+  lv_duedate_date := lv_start_date;
+   FOR i IN 1..lv_paymths_num LOOP
+     lv_bal_num := lv_bal_num - lv_payamt_num;
+     lv_duedate_txt := TO_CHAR(lv_duedate_date,'mm/dd/yyyy');
+     DBMS_OUTPUT.PUT_LINE('Pay #: ' || i || ' Due: ' || lv_duedate_txt
+     || ' Amt: ' || TO_CHAR(lv_payamt_num,'$999.99')
+     || ' Bal: ' || TO_CHAR(lv_bal_num,'$9,999.99'));
+     lv_duedate_date :=  ADD_MONTHS(lv_duedate_date,1);
+  END LOOP;
+END;
+
+Output from SQL Developer:
+
+Pay #: 1 	Due: 10/01/2012 	Amt:   $20.00 	Bal:    $460.00
+Pay #: 2 	Due: 11/01/2012 	Amt:   $20.00 	Bal:    $440.00
+Pay #: 3 	Due: 12/01/2012 	Amt:   $20.00 	Bal:    $420.00
+Pay #: 4 	Due: 01/01/2013 	Amt:   $20.00 	Bal:    $400.00
+Pay #: 5 	Due: 02/01/2013 	Amt:   $20.00 	Bal:    $380.00
+Pay #: 6 	Due: 03/01/2013 	Amt:   $20.00 	Bal:    $360.00
+Pay #: 7 	Due: 04/01/2013 	Amt:   $20.00 	Bal:    $340.00
+Pay #: 8 	Due: 05/01/2013 	Amt:   $20.00 	Bal:    $320.00
+Pay #: 9 	Due: 06/01/2013 	Amt:   $20.00 	Bal:    $300.00
+Pay #: 10 	Due: 07/01/2013 	Amt:   $20.00 	Bal:    $280.00
+Pay #: 11 	Due: 08/01/2013 	Amt:   $20.00 	Bal:    $260.00
+Pay #: 12 	Due: 09/01/2013 	Amt:   $20.00 	Bal:    $240.00
+Pay #: 13 	Due: 10/01/2013 	Amt:   $20.00 	Bal:    $220.00
+Pay #: 14 	Due: 11/01/2013 	Amt:   $20.00 	Bal:    $200.00
+Pay #: 15 	Due: 12/01/2013 	Amt:   $20.00 	Bal:    $180.00
+Pay #: 16 	Due: 01/01/2014 	Amt:   $20.00 	Bal:    $160.00
+Pay #: 17 	Due: 02/01/2014 	Amt:   $20.00 	Bal:    $140.00
+Pay #: 18 	Due: 03/01/2014 	Amt:   $20.00 	Bal:    $120.00
+Pay #: 19 	Due: 04/01/2014 	Amt:   $20.00 	Bal:    $100.00
+Pay #: 20 	Due: 05/01/2014 	Amt:   $20.00	Bal:     $80.00
+Pay #: 21 	Due: 06/01/2014 	Amt:   $20.00 	Bal:     $60.00
+Pay #: 22 	Due: 07/01/2014 	Amt:   $20.00 	Bal:     $40.00
+Pay #: 23 	Due: 08/01/2014 	Amt:   $20.00 	Bal:     $20.00
+Pay #: 24 	Due: 09/01/2014 	Amt:   $20.00 	Bal:       $.00
+
+
+2-11: Using a WHILE Loop
+
+Accomplish the task in Assignment 2-9 by using a WHILE loop structure.  
+Instead of displaying the donation balance (remaining amount of pledge owed) 
+on each line of output, display the total paid to date.
+
+SQL Statement:
+
+DECLARE
+  lv_start_date DATE := '01-OCT-2012';
+  lv_payamt_num NUMBER(8,2) := 20;
+  lv_paymths_num NUMBER(8,2) := 24;
+  lv_bal_num NUMBER(8,2) := 0;
+  lv_duedate_date DATE;
+  lv_duedate_txt VARCHAR2(25);
+  lv_totalPaid NUMBER(8,2) := 0;
+  i NUMBER(3,0) := 1;
+
+BEGIN
+  lv_bal_num := lv_payamt_num * lv_paymths_num;
+  lv_duedate_date := lv_start_date;
+    WHILE i < lv_paymths_num LOOP
+      lv_totalPaid := lv_totalPaid + lv_payamt_num;
+      lv_duedate_txt := TO_CHAR(lv_duedate_date,'mm/dd/yyyy');
+      DBMS_OUTPUT.PUT_LINE('Pay #: ' || i || ' Due: ' || lv_duedate_txt
+      || ' Amt: ' || TO_CHAR(lv_payamt_num,'$999.99')
+      || ' totalPaid: ' || TO_CHAR(lv_totalPaid,'$9,999.99'));
+      lv_duedate_date :=  ADD_MONTHS(lv_duedate_date,1);
+      i:= i + 1;
+  END LOOP;
+END;
+
+
+Output from SQL Developer:
+
+Pay #: 1 	Due: 10/01/2012 	Amt:   $20.00 	totalPaid:     $20.00
+Pay #: 2 	Due: 11/01/2012 	Amt:   $20.00 	totalPaid:     $40.00
+Pay #: 3 	Due: 12/01/2012 	Amt:   $20.00 	totalPaid:     $60.00
+Pay #: 4 	Due: 01/01/2013 	Amt:   $20.00 	totalPaid:     $80.00
+Pay #: 5 	Due: 02/01/2013 	Amt:   $20.00 	totalPaid:    $100.00
+Pay #: 6 	Due: 03/01/2013 	Amt:   $20.00 	totalPaid:    $120.00
+Pay #: 7 	Due: 04/01/2013 	Amt:   $20.00 	totalPaid:    $140.00
+Pay #: 8 	Due: 05/01/2013 	Amt:   $20.00 	totalPaid:    $160.00
+Pay #: 9 	Due: 06/01/2013 	Amt:   $20.00 	totalPaid:    $180.00
+Pay #: 10 	Due: 07/01/2013 	Amt:   $20.00 	totalPaid:    $200.00
+Pay #: 11 	Due: 08/01/2013 	Amt:   $20.00 	totalPaid:    $220.00
+Pay #: 12 	Due: 09/01/2013 	Amt:   $20.00 	totalPaid:    $240.00
+Pay #: 13 	Due: 10/01/2013 	Amt:   $20.00 	totalPaid:    $260.00
+Pay #: 14 	Due: 11/01/2013 	Amt:   $20.00 	totalPaid:    $280.00
+Pay #: 15 	Due: 12/01/2013 	Amt:   $20.00 	totalPaid:    $300.00
+Pay #: 16 	Due: 01/01/2014 	Amt:   $20.00 	totalPaid:    $320.00
+Pay #: 17 	Due: 02/01/2014 	Amt:   $20.00 	totalPaid:    $340.00
+Pay #: 18 	Due: 03/01/2014 	Amt:   $20.00 	totalPaid:    $360.00
+Pay #: 19 	Due: 04/01/2014 	Amt:   $20.00 	totalPaid:    $380.00
+Pay #: 20 	Due: 05/01/2014 	Amt:   $20.00 	totalPaid:    $400.00
+Pay #: 21 	Due: 06/01/2014 	Amt:   $20.00 	totalPaid:    $420.00
+Pay #: 22 	Due: 07/01/2014 	Amt:   $20.00 	totalPaid:    $440.00
+Pay #: 23 	Due: 08/01/2014 	Amt:   $20.00 	totalPaid:    $460.00
+
+
+Assignment 2-12: Using a CASE Expression
+
+Donors can select one of three payment plans for a pledge indicated by the following codes:
+0 = one-time (lump sum) payment
+1 = monthly payments over one year
+2 = monthly payments over two years
+
+A local business has agreed to pay matching amounts on pledge payments during the current month. 
+A PL/SQL block is needed to identify the matching amount for a pledge payment. 
+Create a block using input values of a payment plan code and a payment amount. 
+Use a CASE expression to calculate the matching amount, based on the payment plan codes 
+0 = 25%, 1 = 50%, 2 = 100%, and other = 0. Display the calculated amount.
+
+
+SQL Statement:
+
+DECLARE
+            totalPaidToDate NUMBER (8,2); 
+            paymentPlan NUMBER (2); 
+            paymentAmount NUMBER (8,2);
+            matchingAmount NUMBER (8,2);
+BEGIN
+            paymentPlan :=’&paymentPlan’;s
+            paymentAmount :=’&paymentAmount’;
+            CASE paymentPlan
+            WHEN '0' THEN DBMS_OUTPUT.PUT_LINE('Plan Number:  ' || paymentPlan || '  Total Amount Donated:  ' ||  paymentAmount || '  Payment amount per month: ' || to_char(paymentAmount,'$999999.99') || '  Matching Amount: ' || to_char (paymentAmount * .25,'$999999.99'));
+ 
+            WHEN '1' THEN DBMS_OUTPUT.PUT_LINE('Plan Number:  ' || paymentPlan || '  Total Amount Donated:  ' ||  paymentAmount || '  Payment amount per month in one year:' ||to_char(paymentAmount/12,'$999999.99') || '  Matching Amount: ' || to_char (paymentAmount * .5,'$999999.99'));
+ 
+            WHEN '2' THEN DBMS_OUTPUT.PUT_LINE('Plan Number:  ' || paymentPlan || '  Total Amount Donated:  ' ||  paymentAmount || '  Payment amount per month in two year:' || to_char(paymentAmount/24,'$999999.99') || '  Matching Amount: ' || to_char (paymentAmount,'$999999.99'));
+ 
+            ELSE
+                        DBMS_OUTPUT.PUT_LINE('  Matching Amount is: $0.00 ');
+ 
+            END CASE;
+END;
+
+2-13
+
+DECLARE
+ pledgeAmount NUMBER(8,2);
+ donorType CHAR(5);
+ matchPay NUMBER(8,2);
+BEGIN
+ donorType :=  ‘&inputDonorType’;
+ pledgeAmount := ‘&inputPledgeAmount’;
+ 
+IF donorType = 'I' THEN
+  IF (pledgeAmount >= 100) AND (pledgeAmount <= 249) THEN
+    matchPay := pledgeAmount * .50;
+  ELSIF (pledgeAmount >= 250) AND (pledgeAmount <= 499) THEN
+    matchPay := pledgeAmount * .30;
+  ELSIF (pledgeAmount >= 500) THEN
+    matchPay := pledgeAmount * .20;
+  END IF;
+ 
+ELSIF donorType = 'B' THEN
+  IF (pledgeAmount >= 100) AND (pledgeAmount <= 499) THEN
+    matchPay := pledgeAmount * .20;
+  ELSIF (pledgeAmount >= 500) AND (pledgeAmount <= 999) THEN
+    matchPay := pledgeAmount * .10;
+  ELSIF (pledgeAmount >= 1000) THEN
+    matchPay := pledgeAmount * .05;
+  END IF;
+ 
+ELSIF donorType = 'G' THEN
+  IF (pledgeAmount >= 100) THEN
+    matchPay := pledgeAmount * .05;
+  END IF;
+ 
+ELSE
+  matchPay := 0;
+ 
+END IF;
+  DBMS_OUTPUT.PUT_LINE(matchPay);
+END;
+
+
+
+                   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

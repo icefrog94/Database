@@ -1,0 +1,271 @@
+Chapter 3
+Wai Yan Kaung
+2/27/2016
+
+pg. 123 Hands-On Assignments Part II
+ 
+3-9 : Retrieving Pledge Totals
+Create a PL/SQL block that retrieves and displays information for a specific project based on Project ID. Display the following on a single row of output: project ID, project name, number of pledges made, total dollars pledged, and the average pledge amount. 
+
+
+3-9
+
+set serveroutput on
+DECLARE
+
+proj_name       		dd_project.projname%type;
+proj_id         		dd_project.idproj%type;
+pledge_count    		dd_pledge.pledgeamt%type;
+pledge_average  	dd_pledge.pledgeamt%type;
+pledge_sum      		dd_pledge.pledgeamt%type;
+
+BEGIN
+
+SELECT dd_project.idproj, projname, count(pledgeamt), sum(pledgeamt), avg(pledgeamt)
+into proj_id, proj_name, pledge_count, pledge_sum, pledge_average
+from dd_pledge, dd_project
+where dd_pledge.idproj = dd_project.idproj
+and dd_project.idproj = &proj_id
+group by dd_project.idproj, projname;
+
+DBMS_OUTPUT.PUT_LINE(
+'Project ID: ' || proj_id 
+||' Project Name: ' || proj_name 
+||' Total Pledges Made: ' || pledge_count 
+||' Total Dollars Pledged: ' || pledge_sum
+||' Average Dollars Pledged: ' ||  pledge_average 
+);
+
+end;
+
+
+Example 1 (501)
+Project ID: 501 Project Name: Community food pantry #21 freezer equipment Total Pledges Made: 5 Total Dollars Pledged: 4060 Average Dollars Pledged: 812
+Example 2 (500)
+Project ID: 500 Project Name: Elders Assistance League Total Pledges Made: 3 Total Dollars Pledged: 190 Average Dollars Pledged: 63.33
+--------------------------
+Project information:
+
+SELECT dd_project.idproj, projname, count(pledgeamt), sum(pledgeamt), avg(pledgeamt)
+-- into proj_id, proj_name, pledge_count, pledge_sum, pledge_average
+from dd_pledge, dd_project
+where dd_pledge.idproj = dd_project.idproj
+-- and dd_project.idproj = &proj_id
+group by dd_project.idproj, projname
+order by dd_project.idproj;
+
+IDPROJ PROJNAME                                                     COUNT(PLEDGEAMT) SUM(PLEDGEAMT) AVG(PLEDGEAMT)
+---------- ------------------------------------------------------------ ---------------- -------------- --------------
+       500 Elders Assistance League                                     3            	190     	63.3333333 
+       501 Community food pantry #21 freezer equipment  5   	4060	812 
+       503 Animal shelter Vet Connect Program             	2            840    	420 
+       504 Shelter Share Project 2013                      		3           	2040 	680
+
+===========================
+3-10
+Adding a Project
+Create a PL/SQL block to handle adding a new project. Create and use a sequence named DD_PROJID_SEQ to handle generating and populating the project ID. The first number issued by this sequence should be 530, and no caching should be used. Use a record variable to handle the data to be added. Data for the new row should be the following: project name = HK Animal Shelter Extension, start = 1/1/2013, end 5/31/2013, and fundraising goal = $65,000. Any columns not addressed in the data list are currently unknown.
+
+
+set serveroutput on
+
+--after the first running of this create sequence code, I would delete/comment it out.
+CREATE SEQUENCE dd_project_seq
+  MINVALUE 1
+  START WITH 530
+  INCREMENT BY 1
+  NOCACHE;
+  
+Declare
+TYPE type_project IS RECORD(
+project_name      	dd_project.projname%type := 'HK Animal Shelter Extension',
+project_start     		dd_project.projstartdate%type := '01-JAN-13',
+project_end       		dd_project.projenddate%type := '31-MAY-13',
+project_funding   	dd_project.projfundgoal%type := '65000');
+
+new_project     type_project;
+
+Begin
+
+INSERT INTO 	dd_project (idproj, projname, projstartdate, projenddate, projfundgoal)
+VALUES 	(dd_project_seq.NEXTVAL, new_project.project_name, new_project.project_start, new_project.project_end, new_project.project_funding);
+commit; 
+end;
+------------OUTPUT------------
+sequence DD_PROJECT_SEQ created.
+anonymous block completed
+
+select * from dd_project;
+
+IDPROJ        PROJNAME                                                     	PROJSTARTDATE 	PROJENDDATE 	PROJFUNDGOAL 	PROJCOORD          
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+500 	Elders Assistance League  	01-SEP-12     	31-OCT-12          	15000 	Shawn Hasee          
+501 	Community food pantry #21 freezer equipment   01-OCT-12     	31-DEC-12          	65000 	Shawn Hasee          
+502 	Lang Scholarship Fund                                        	01-JAN-13     	01-NOV-13         	100000 	Traci Brown          
+503 	Animal shelter Vet Connect Program                 01-DEC-12     	30-MAR-13        	25000 	Traci Brown          
+504 	Shelter Share Project 2013                                   01-FEB-13     	31-JUL-13          	35000 	Traci Brown          
+530	HK Animal Shelter Extension                                 01-JAN-13     	31-MAY-13          	65000
+
+6 rows selected
+
+Note:
+
+select * from dd_project;
+
+A simple way to do: 
+INSERT INTO 	dd_project (idproj, projname, projstartdate, projenddate, projfundgoal)
+VALUES 	(dd_project_seq.NEXTVAL, 'HK Animal Shelter Extension', to_date('01-JAN-13'),                                      to_date('01-JAN-13'), 65000);
+
+To Drop a sequence: 
+
+drop sequence DD_PROJECT_SEQ;
+
+to delete a row:
+delete from dd_project where idproj = 530
+ 
+3-11 : Retrieving and Displaying Pledge Data
+
+Create a PL/SQL block to retrieve and display data for all pledges made in a specified month.
+One row of output should be displayed for each pledge.  Include the following in each row of output:
+	* Pledge ID, donor ID, and pledge amount
+	* If the pledge is being paid in a lump sum, display “Lump Sum.”
+* If the pledge is being paid in monthly payments, display “Monthly - #” (with the # representing the number of months for payment).
+	* The list should be sorted to display all lump sum pledges first. 
+
+SET SERVEROUTPUT ON
+
+DECLARE
+  PLEDGES    			DD_PLEDGE%ROWTYPE;
+  START_MONTH_DATE       	DD_PLEDGE.PLEDGEDATE%TYPE := '01-OCT-12';
+  END_MONTH_DATE 		DD_PLEDGE.PLEDGEDATE%TYPE := '31-OCT-12';
+  
+BEGIN
+  FOR PLEDGES IN 
+    (SELECT IDPLEDGE, IDDONOR, PLEDGEAMT, CASE
+      WHEN PAYMONTHS = 0 THEN 'Lump Sum.'
+      ELSE 'Monthly - ' || PAYMONTHS
+      END AS MONTHLY_PAYMENT
+      FROM DD_PLEDGE
+      WHERE PLEDGEDATE >= START_MONTH_DATE AND PLEDGEDATE <= END_MONTH_DATE
+      ORDER BY PAYMONTHS)
+      LOOP
+      DBMS_OUTPUT.PUT_LINE('Pledge ID: ' || PLEDGES.IDPLEDGE || ', Donor ID: '
+        || PLEDGES.IDDONOR || ', Pledge Amount: ' ||to_char(PLEDGES.PLEDGEAMT,
+        '$9999.99') || ', Monthly Payments: ' || PLEDGES. MONTHLY_PAYMENT);
+      END LOOP;
+      END;
+
+anonymous block completed
+Pledge ID: 102, Donor ID: 310, Pledge Amount:   $500.00, Monthly Payments: Lump Sum.
+Pledge ID: 103, Donor ID: 307, Pledge Amount:  $2000.00, Monthly Payments: Lump Sum.
+Pledge ID: 106, Donor ID: 301, Pledge Amount:    $75.00, Monthly Payments: Lump Sum.
+Pledge ID: 105, Donor ID: 309, Pledge Amount:   $120.00, Monthly Payments: Monthly - 12
+Pledge ID: 104, Donor ID: 308, Pledge Amount:   $240.00, Monthly Payments: Monthly - 12
+Pledge ID: 107, Donor ID: 302, Pledge Amount:  $1200.00, Monthly Payments: Monthly – 24
+
+------------------------
+desc DD_PLEDGE;
+
+    SELECT IDPLEDGE, IDDONOR, PLEDGEAMT, PAYMONTHS,
+    CASE   WHEN PAYMONTHS = 0 THEN 'Lump Sum.'
+      ELSE 'Monthly - ' || PAYMONTHS
+      END AS MONTHLY_PAYMENT
+      FROM DD_PLEDGE
+    --WHERE PLEDGEDATE >= START_MONTH_DATE AND PLEDGEDATE <= END_MONTH_DATE
+      ORDER BY PAYMONTHS
+
+  IDPLEDGE    IDDONOR  PLEDGEAMT  PAYMONTHS MONTHLY_PAYMENT                                   
+---------- ---------- ---------- ---------- --------------------------------------------------
+       100        303         80          0 Lump Sum.                                          
+       101        304         35          0 Lump Sum.                                          
+       102        310        500          0 Lump Sum.                                          
+       103        307       2000          0 Lump Sum.                                          
+       106        301         75          0 Lump Sum.                                          
+       111        306       1500          0 Lump Sum.                                          
+       112        309        240         12 Monthly - 12                                       
+       109        301        360         12 Monthly - 12                                       
+       110        303        300         12 Monthly - 12                                       
+       105        309        120         12 Monthly - 12                                       
+       104        308        240         12 Monthly - 12                                       
+       107        302       1200         24 Monthly - 24                                       
+       108        308        480         24 Monthly - 24                                       
+
+ 13 rows selected 
+
+
+
+
+3-12 : Retrieving a Specific Pledge
+
+Create a PL/SQL block to retrieve and display information for a specific pledge. Display the pledge ID, donor ID, pledge amount, total paid so far, and the difference between the pledged amount and the total paid amount.
+
+SET SERVEROUTPUT ON
+
+DECLARE
+  PLEDGES 			DD_PLEDGE%ROWTYPE;
+  TOTAL_PLEDGE_TO_PAY 	DD_PLEDGE.PLEDGEAMT%TYPE;
+  BALANCE 			DD_PLEDGE.PLEDGEAMT%TYPE;
+  MONTHS_PAID NUMBER (5);
+
+BEGIN
+  SELECT *
+  INTO PLEDGES
+  FROM DD_PLEDGE
+  WHERE IDPLEDGE =& PLEDGE_ID;
+  
+MONTHS_PAID := PLEDGES.PAYMONTHS;
+
+  IF PLEDGES.PAYMONTHS = 0 THEN 
+  TOTAL_PLEDGE_TO_PAY := PLEDGES.PLEDGEAMT;
+  ELSE TOTAL_PLEDGE_TO_PAY := MONTHS_PAID * (PLEDGES.PLEDGEAMT/PLEDGES.PAYMONTHS);
+  END IF;
+  
+  BALANCE := PLEDGES.PLEDGEAMT - TOTAL_PLEDGE_TO_PAY;
+  
+  DBMS_OUTPUT.PUT_LINE('Pledge ID: ' || PLEDGES.IDPLEDGE || ', Donor ID: ' || PLEDGES.IDDONOR ||
+', Amount paid: ' || TOTAL_PLEDGE_TO_PAY || ' ' || ', Balance: ' || BALANCE);
+
+END;
+
+Insert value: 100
+anonymous block completed
+Pledge ID: 100, Donor ID: 303, Amount paid: 80 , Balance: 0
+
+Insert value: 105
+Pledge ID: 105, Donor ID: 309, Amount paid: 120 , Balance: 0
+
+3-13 : Modifying Data
+
+Create a PL/SQL block to modify the fundraising goal amount for a specific project. In addition, display the following information for the project being modified: project name, start date, previous fundraising goal amount, and new fundraising goal amount.
+
+SET SERVEROUTPUT ON
+
+DECLARE
+  PROJECT_NAME 		DD_PROJECT.PROJNAME%TYPE;
+  DATE_START 			DD_PROJECT.PROJSTARTDATE%TYPE;
+  FUNDRAISING_GOAL 		DD_PROJECT.PROJFUNDGOAL%TYPE;
+  PROJECT_ID 			DD_PROJECT.IDPROJ%TYPE := '502';
+  NEW_FUNDRAISING_GOAL 	DD_PROJECT.PROJFUNDGOAL%TYPE := '250000';
+    
+BEGIN
+  SELECT PROJNAME, PROJSTARTDATE, PROJFUNDGOAL
+  INTO PROJECT_NAME, DATE_START, FUNDRAISING_GOAL
+  FROM DD_PROJECT
+  WHERE IDPROJ = PROJECT_ID;
+  
+  UPDATE DD_PROJECT
+  SET PROJFUNDGOAL = NEW_FUNDRAISING_GOAL;
+  
+  DBMS_OUTPUT.PUT_LINE('Project Name: ' || PROJECT_NAME ||', Start Date: ' ||
+  DATE_START || ', Previous Goal: ' || FUNDRAISING_GOAL || ', New Goal: ' ||
+  NEW_FUNDRAISING_GOAL);
+  
+  END;
+
+anonymous block completed
+Project Name: Lang Scholarship Fund, Start Date: 01-JAN-13, Previous Goal: 100000, New Goal: 250000
+
+
+
+
+

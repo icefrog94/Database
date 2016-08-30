@@ -1,0 +1,120 @@
+Wai Yan Kaung
+1/30/2016
+Chapter 1 Hands On Assignment PartII
+
+
+1)List each donor who has made a pledge and indicated a single lump sum payment. 
+  Include first name, last name, pledge date and pledge amount.
+
+SQL Statement:
+
+SELECT d.firstname, d.lastname, p.pledgedate, p.pledgeamt
+FROM dd_donor d JOIN dd_pledge p USING (idDonor)
+WHERE paymonths = 0;
+
+
+Output from SQL Developer: 
+
+FIRSTNAME	LASTNAME	PLEDGEDATE	PLEDGEAMT
+Terry		Venor		18-SEP-2012	80
+Sherry		Pane		21-SEP-2012	35
+-		Unique Dezigns	01-OCT-2012	500
+-		VA Community Org	03-OCT-2012	2000
+Mary		Treanor		12-OCT-2012	75
+-		Coastal Developers	01-MAR-2013	1500
+
+
+
+2)List each donor who has made a pledge and indicated monthly payments over one year. 
+  Include first name, last name, pledge date and pledge amount. 
+  Also, display the monthly payment amount. (Equal monthly payments are made for all pledges paid in monthly payments.)
+
+SQL Statement: 
+
+SELECT d.firstname, d.lastname, p.pledgedate, p.pledgeamt , 
+(p.pledgeamt/p.paymonths) "MONTHLYPAY"
+FROM dd_donor d JOIN dd_pledge p USING (iddonor)
+WHERE p.paymonths > 12;
+
+
+Ouput from SQL Developer:
+
+
+FIRSTNAME	LASTNAME	PLEDGEDATE	PLEDGEAMT	MONTHLYPAY
+Patrick		Lee		15-OCT-2012	1200		50
+Betty		Konklin		20-JAN-2013	480		20
+
+
+
+
+
+                                     
+3)Display an unduplicated list of projects (ID and name) that have pledges committed. 
+  Don’t display all pro0jects defined; list only those that have pledges assigned.
+
+SQL Statement:
+
+SELECT DISTINCT p.idproj , p.projname
+FROM dd_project p JOIN dd_pledge pl ON p.idproj = pl.idproj;
+
+
+Output from SQL Developer:
+
+IDPROJ	PROJNAME
+503	Animal shelter Vet Connect Program
+504	Shelter Share Project 2013
+501	Community food pantry #21 freezer equipment
+500	Elders Assistance League
+
+
+
+4)Display the number of pledges made by each donor. 
+  Include the donor ID, first name, last name and number of pledges.
+
+SQL Statement:
+
+SELECT pl.iddonor, d.firstname,d.lastname, COUNT(pl.iddonor) "# Pledges Commited"
+FROM dd_pledge pl JOIN dd_donor d ON pl.iddonor = d.iddonor
+GROUP BY pl.iddonor,d.firstname,d.lastname;
+
+
+Output from SQL Developer:
+
+IDDONOR	FIRSTNAME	LASTNAME	# Pledges Commited
+302		Patrick		Lee		1
+304		Sherry		Pane		1
+309		Jim		Tapp		2
+307	-			VA Community Org	1
+308		Betty		Konklin		2
+303		Terry		Venor		2
+310	-			Unique Dezigns	1
+301		Mary		Treanor		2
+306	-			Coastal Developers	1
+
+
+5) Display all pledges made before March 8, 2012. 
+    Include all column data from the DD_PLEDGE table.
+
+SQL Statement: 
+
+SELECT * FROM dd_pledge
+WHERE pledgedate < '08-MAR-2012';
+
+
+Output from SQL Developer:
+
+no data found
+
+
+
+      	
+
+
+
+
+
+
+
+
+
+              
